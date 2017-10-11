@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Firebase Chat</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+<style>
+    body {
+      font-family: 'HelveticaNeue-Light';
+    }
+    .msg {
+      margin: 10px 0;
+      padding: 10px;
+      width: 400px;
+      background-color: #efefef;
+    }
+    #username, #text {
+      margin: 5px 0px;
+    }
+    #post {
+      padding: 0.5em 1em;
+      background-color: #50b1ff;
+      border: none;
+      color: #FFF;
+    }
+    #login {
+      padding: 0.5em 1em;
+      background-color: #DD4B39;
+      border: none;
+      color: #FFF;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id="login">Login with Google</button><br/>
+  <input id="text" type="text" placeholder="Message"><br/>
+  <button id="post">Post</button><br/>
+  <div id="results"></div>
+
+  
+<script src="https://www.gstatic.com/firebasejs/4.3.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyCeKmYULKUnqOlRYOmosnMiRGbg8GDZC2o",
+    authDomain: "chat-app-334bf.firebaseapp.com",
+    databaseURL: "https://chat-app-334bf.firebaseio.com",
+    projectId: "chat-app-334bf",
+    storageBucket: "chat-app-334bf.appspot.com",
+    messagingSenderId: "1041811084848"
+  };
+  firebase.initializeApp(config);
+</script>
+  <script>
+    var myFirebase = firebase.database().ref();
+    var usernameInput = document.querySelector('#username');
+    var textInput = document.querySelector('#text');
+    var postButton = document.querySelector('#post');
+
+	var username = null;
+    var loginButton = document.querySelector('#login');
+    postButton.style.display = "none";
+    textInput.style.display = "none";
+
+    postButton.addEventListener("click", function() {
+      var msgUser = username;
+      var msgText = textInput.value;
+      myFirebase.push({username:msgUser, text:msgText});
+      textInput.value = "";
+    });
+
+/** Function to add a data listener **/
+    var startListening = function() {
+      myFirebase.on('child_added', function(snapshot) {
+        var msg = snapshot.val();
+      
+        var msgUsernameElement = document.createElement("b");
+        msgUsernameElement.textContent = msg.username;
+        
+        var msgTextElement = document.createElement("p");
+        msgTextElement.textContent = msg.text;
+  
+        var msgElement = document.createElement("div");
+        msgElement.appendChild(msgUsernameElement);
+        msgElement.appendChild(msgTextElement);
+
+	msgElement.className = "msg";
+        document.getElementById("results").appendChild(msgElement);
+      });
+    }
+
+	
+	var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+    		.then(function() {
+	loginButton.addEventListener("click", function() {
+		firebase.auth().signInWithPopup(provider).then(function(result) {
+			  // This gives you a Google Access Token. You can use it to access the Google API.
+			  var token = result.credential.accessToken;
+			  // The signed-in user info.
+			  var user = result.user;
+			  console.log(user);
+			}).catch(function(error) {
+			  // Handle Errors here.
+			  var errorCode = error.code;
+			  var errorMessage = error.message;
+			  // The email of the user's account used.
+			  var email = error.email;
+			  // The firebase.auth.AuthCredential type that was used.
+			  var credential = error.credential;
+			  console.log(errorCode);
+			  console.log(errorMessage);
+			}, {remember: "none"});
+	});
+        });
+			
+	firebase.auth().onIdTokenChanged(function (authData) {
+		if (authData) {
+			username = authData.displayName;
+			loginButton.textContent = "Logged in as " + username;
+			loginButton.disabled = true;
+			postButton.style.display = "block";
+			textInput.style.display = "block";
+
+			// Start listening for data, remove previous calls to this method
+			startListening();
+		}
+	});
+	
+	
+  </script>
+</body>
+</html>
+
