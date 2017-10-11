@@ -1,4 +1,3 @@
-//testing
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,12 +18,12 @@
     #username, #text {
       margin: 5px 0px;
     }
-    //#post {
-      //padding: 0.5em 1em;
-      //background-color: #50b1ff;
-      //border: none;
-      //color: #FFF;
-   // }
+    #post {
+      padding: 0.5em 1em;
+      background-color: #50b1ff;
+      border: none;
+      color: #FFF;
+    }
     #login {
       padding: 0.5em 1em;
       background-color: #DD4B39;
@@ -59,19 +58,16 @@
     var usernameInput = document.querySelector('#username');
     var textInput = document.querySelector('#text');
     var postButton = document.querySelector('#post');
-
 	var username = null;
     var loginButton = document.querySelector('#login');
     postButton.style.display = "none";
     textInput.style.display = "none";
-
     postButton.addEventListener("click", function() {
       var msgUser = username;
       var msgText = textInput.value;
       myFirebase.push({username:msgUser, text:msgText});
       textInput.value = "";
     });
-
 /** Function to add a data listener **/
     var startListening = function() {
       myFirebase.on('child_added', function(snapshot) {
@@ -86,12 +82,10 @@
         var msgElement = document.createElement("div");
         msgElement.appendChild(msgUsernameElement);
         msgElement.appendChild(msgTextElement);
-
 	msgElement.className = "msg";
         document.getElementById("results").appendChild(msgElement);
       });
     }
-
 	
 	var provider = new firebase.auth.GoogleAuthProvider();
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
@@ -124,7 +118,6 @@
 			loginButton.disabled = true;
 			postButton.style.display = "block";
 			textInput.style.display = "block";
-
 			// Start listening for data, remove previous calls to this method
 			startListening();
 		}
@@ -134,4 +127,3 @@
   </script>
 </body>
 </html>
-
