@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Firebase Chat</title>
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
 <style>
     body {
@@ -55,10 +54,9 @@
 </script>
   <script>
     var myFirebase = firebase.database().ref();
-    var usernameInput = document.querySelector('#username');
     var textInput = document.querySelector('#text');
     var postButton = document.querySelector('#post');
-	var username = null;
+    var username = null;
     var loginButton = document.querySelector('#login');
     postButton.style.display = "none";
     textInput.style.display = "none";
