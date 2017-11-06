@@ -36,6 +36,8 @@
   <button id="login">Login with Google</button><br/>
   <input id="text" type="text" placeholder="Message"><br/>
   <button id="post">Post</button><br/>
+  <input id = "nameEntry" type="text" placeholder = "Set a new nickname"><br/>
+  <button id ="nameButton">Set Name</button><br/>
   <div id="results"></div>
 
   
@@ -58,10 +60,14 @@
     
     var usersRef = firebase.database().ref('users');
     
+   	
+    
     
     var textInput = document.querySelector('#text');
     var postButton = document.querySelector('#post');
     var username = null;
+    var email = null;
+    
     var loginButton = document.querySelector('#login');
     postButton.style.display = "none";
     textInput.style.display = "none";
@@ -71,6 +77,18 @@
       myFirebase.push({username:msgUser, text:msgText});
       textInput.value = "";
     });
+    
+    var nameEntry = document.querySelector('#nameEntry')
+    var nameButton = document.querySelector('#nameButton');
+    nameEntry.style.display = "none";
+    nameButton.style.display = 'none';
+    
+    nameButton.addEventListener("click",function(){
+    	username = nameEntry.value;
+    	firebase.database().ref('users/' + email).update({name: nameEntry.value});
+    });
+    
+    
 /** Function to add a data listener **/
     var startListening = function() {
       myFirebase.on('child_added', function(snapshot) {
@@ -105,7 +123,7 @@
 			  var errorCode = error.code;
 			  var errorMessage = error.message;
 			  // The email of the user's account used.
-			  var email = error.email;
+			  var emailError = error.email;
 			  // The firebase.auth.AuthCredential type that was used.
 			  var credential = error.credential;
 			  console.log(errorCode);
@@ -116,19 +134,30 @@
 			
 	firebase.auth().onIdTokenChanged(function (authData) {
 		if (authData) {
-			username = authData.displayName;
-			var email = authData.email;
+			email = authData.email;
+			email = email.replace('.',','); //replace '.' with ',' to allow it to be used as a path.
 			
-			usersRef.once('value').then(function(snapshot){
-				if(!(email in snapshot)) usersRef.push({email: username});
+			firebase.database().ref('users/' + email).once('value').then(function(snapshot){
+				let user = snapshot.val();
+				if(!user){ //first time e-mail
+					username = authData.displayName;
+					firebase.database().ref('users/' + email).set({name: username});
+				}				
+
+				else{ //previously used email
+					username = user.name;
+				}
+				loginButton.textContent = "Logged in as " + username;
+				loginButton.disabled = true;
+				postButton.style.display = "block";
+				textInput.style.display = "block";
+				
+				nameEntry.style.display = "block";
+				nameButton.style.display = "block";
+				// Start listening for data, remove previous calls to this method
+				startListening();
 			});
 			
-			loginButton.textContent = "Logged in as " + username;
-			loginButton.disabled = true;
-			postButton.style.display = "block";
-			textInput.style.display = "block";
-			// Start listening for data, remove previous calls to this method
-			startListening();
 		}
 	});
 	
