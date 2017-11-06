@@ -72,39 +72,57 @@
     postButton.style.display = "none";
     textInput.style.display = "none";
     postButton.addEventListener("click", function() {
-      var msgUser = username;
-      var msgText = textInput.value;
-      myFirebase.push({username:msgUser, text:msgText});
-      textInput.value = "";
+      sendMessage(textInput.value);
+     
+      textInput.value = "";    
     });
     
-    var nameEntry = document.querySelector('#nameEntry')
+    var nameEntry = document.querySelector('#nameEntry');
     var nameButton = document.querySelector('#nameButton');
     nameEntry.style.display = "none";
     nameButton.style.display = 'none';
     
+    // listener for change name button.
     nameButton.addEventListener("click",function(){
-    	username = nameEntry.value;
-    	firebase.database().ref('users/' + email).update({name: nameEntry.value});
+    	var oldName = username;
+		username = nameEntry.value;
+
+    	var elements = document.querySelectorAll(`b[data-email="${email}"]`);
+    	for(let element of elements){
+    		element.textContent = username;
+    	}
+    	
+    	firebase.database().ref('users/' + email).update({name: username});
+    	var msgText = "Automated message: My name was changed from " + oldName;
+    	sendMessage(msgText);
     });
     
+    function sendMessage(text){
+    	var key = myFirebase.push({email:email, text:text}).key;
+	  	firebase.database().ref('users/' + email + '/messageKeys').push(key);
+    }
     
 /** Function to add a data listener **/
     var startListening = function() {
       myFirebase.on('child_added', function(snapshot) {
         var msg = snapshot.val();
-      
-        var msgUsernameElement = document.createElement("b");
-        msgUsernameElement.textContent = msg.username;
+      	let msgEmail = msg.email;
+      	firebase.database().ref('users/' + msgEmail).once('value').then(function(userSnapshot){
+      		var msgUsernameElement = document.createElement("b");
+        	msgUsernameElement.textContent = userSnapshot.val().name;
+        	msgUsernameElement.dataset.email = msgEmail;
         
-        var msgTextElement = document.createElement("p");
-        msgTextElement.textContent = msg.text;
+        	var msgTextElement = document.createElement("p");
+        	msgTextElement.textContent = msg.text;
   
-        var msgElement = document.createElement("div");
-        msgElement.appendChild(msgUsernameElement);
-        msgElement.appendChild(msgTextElement);
-	msgElement.className = "msg";
-        document.getElementById("results").appendChild(msgElement);
+	        var msgElement = document.createElement("div");
+	        msgElement.appendChild(msgUsernameElement);
+	        msgElement.appendChild(msgTextElement);
+			msgElement.className = "msg";
+	        document.getElementById("results").appendChild(msgElement);
+      	});
+      
+        
       });
     }
 	
