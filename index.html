@@ -101,12 +101,12 @@
     	else{
 	    	var oldName = username;
 			username = nameEntry.value;
-	
 	    	
 	    	firebase.database().ref('users/' + email).update({name: username});
 	    	var msgText = "Automated message: My name was changed from " + oldName;
 	    	sendMessage(msgText);
 	    	nameEntry.value = '';
+	    	loginButton.textContent = "Logged in as " + username;
     	}
 
     });
@@ -148,11 +148,11 @@
 	    		element.textContent = snapshot.val().name;
 	    	}
       });
-    }
+    };
     
 	
 	var provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE) //refresh will log out.
     		.then(function() {
 			loginButton.addEventListener("click", function() {
 			  firebase.auth().signInWithPopup(provider).then(function(result) {
