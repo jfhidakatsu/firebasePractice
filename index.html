@@ -30,6 +30,16 @@
       color: #FFF;
       cursor: pointer;
     }
+    #nameEntry{
+    	top: 0px;
+    	right: 0px;
+    	position: absolute;
+    }
+    #nameButton{
+    	top: 25px;
+    	right: 0px;
+    	position: absolute;
+    }
   </style>
 </head>
 <body>
@@ -56,7 +66,8 @@
   firebase.initializeApp(config);
 </script>
   <script>
-    var myFirebase = firebase.database().ref();
+  	//not a great name, but just to not have to change code.
+    var myFirebase = firebase.database().ref('messages');
     
     var usersRef = firebase.database().ref('users');
     
@@ -84,22 +95,27 @@
     
     // listener for change name button.
     nameButton.addEventListener("click",function(){
-    	var oldName = username;
-		username = nameEntry.value;
-
-    	var elements = document.querySelectorAll(`b[data-email="${email}"]`);
-    	for(let element of elements){
-    		element.textContent = username;
+    	if(!nameEntry.value){
+    		alert('Name should not be an empty string.');
     	}
-    	
-    	firebase.database().ref('users/' + email).update({name: username});
-    	var msgText = "Automated message: My name was changed from " + oldName;
-    	sendMessage(msgText);
+    	else{
+	    	var oldName = username;
+			username = nameEntry.value;
+	
+	    	
+	    	firebase.database().ref('users/' + email).update({name: username});
+	    	var msgText = "Automated message: My name was changed from " + oldName;
+	    	sendMessage(msgText);
+	    	nameEntry.value = '';
+    	}
+
     });
     
     function sendMessage(text){
     	var key = myFirebase.push({email:email, text:text}).key;
-	  	firebase.database().ref('users/' + email + '/messageKeys').push(key);
+    	
+    	//Uncomment this code if the keys are needed in the future.
+	  	//firebase.database().ref('users/' + email + '/messageKeys').push(key);
     }
     
 /** Function to add a data listener **/
@@ -124,7 +140,16 @@
       
         
       });
+      
+      //for name change
+      usersRef.on('child_changed',function(snapshot){
+      		var elements = document.querySelectorAll(`b[data-email="${snapshot.key}"]`);
+	    	for(let element of elements){
+	    		element.textContent = snapshot.val().name;
+	    	}
+      });
     }
+    
 	
 	var provider = new firebase.auth.GoogleAuthProvider();
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
